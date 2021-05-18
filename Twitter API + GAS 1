@@ -1,0 +1,69 @@
+//APIキー情報を宣言
+var twitter = TwitterWebService.getInstance(
+ 'xxx',       // 作成したアプリケーションのConsumer Key
+ 'xxx'  // 作成したアプリケーションのConsumer Secret
+);
+
+//1.認証
+function authorize() {
+ twitter.authorize();
+}
+
+//2.認証解除
+function reset() {
+ twitter.reset();
+}
+
+//3.認証後のコールバック
+function authCallback(request) {
+ return twitter.authCallback(request);
+}
+
+function searchTweets() {
+
+ //検索キーワードを宣言
+ const sheetName   = '例';
+ const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+ const sheet       = spreadsheet.getSheetByName(sheetName);
+ var kw = sheet.getRange("B2").getValue();
+
+ //APIでタイムラインツイートを取得（参考：https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-home_timeline）
+ var service  = twitter.getService();
+ var json = service.fetch("https://api.twitter.com/1.1/search/tweets.json?q="+kw);
+ var array = JSON.parse(json);
+ var array = array.statuses;　//テキストデータがstatusesの中に入っているので一度取り出しが必要（これをしないとmapが使えない）
+ 
+ //取得した情報からテキストデータを抜き出して、配列tweetsに格納
+ var tweets = array.map(function(tweet){
+   return tweet.text;
+ });
+
+
+ 
+ // Logger.log(tweets);
+
+   return tweets;
+}
+
+function writeDataToSheet() {
+ const sheetName   = '例';
+ const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+ const sheet       = spreadsheet.getSheetByName(sheetName);
+ 
+ sheet.getRange(5,2,20,5).clear();
+
+  // var range = sheet.getRange(2,3).setValue(searchTweets()[0]);
+
+  var lastRow = sheet.getLastRow() - 3;
+
+  // Logger.log(lastRow);
+
+  for (var i=5; i<=searchTweets().length; i++)
+　  {
+    sheet.getRange(i, 2).setValue(searchTweets()[i-5]);
+    sheet.getRange(i, 1).setValue(i-4);
+　  }
+}
+
+
+
