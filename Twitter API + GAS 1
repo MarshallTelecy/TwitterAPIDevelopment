@@ -45,12 +45,20 @@ function searchTweets() {
    return tweets;
 }
 
+function clearSheet() {
+  const sheetName   = '例';
+ const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+ const sheet       = spreadsheet.getSheetByName(sheetName);
+ 
+ sheet.getRange(5,1,20,5).clear();
+}
+
 function writeDataToSheet() {
  const sheetName   = '例';
  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
  const sheet       = spreadsheet.getSheetByName(sheetName);
  
- sheet.getRange(5,2,20,5).clear();
+ sheet.getRange(5,1,20,5).clear();
 
   // var range = sheet.getRange(2,3).setValue(searchTweets()[0]);
 
