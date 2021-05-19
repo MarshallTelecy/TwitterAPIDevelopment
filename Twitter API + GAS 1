@@ -19,12 +19,14 @@ function authCallback(request) {
  return twitter.authCallback(request);
 }
 
+// 関数説明：データを取得する
 function searchTweets() {
-
- //検索キーワードを宣言
+// シートを取得する
  const sheetName   = '例';
  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
  const sheet       = spreadsheet.getSheetByName(sheetName);
+
+ //検索キーワードを宣言（B2のセル）
  var kw = sheet.getRange("B2").getValue();
 
  //APIでタイムラインツイートを取得（参考：https://developer.twitter.com/en/docs/tweets/timelines/api-reference/get-statuses-home_timeline）
@@ -35,43 +37,75 @@ function searchTweets() {
  
  //取得した情報からテキストデータを抜き出して、配列tweetsに格納
  var tweets = array.map(function(tweet){
-   return tweet.text;
+   // 左から：日付、テキスト、ハンドル名、リツイートされた回数、いいねされた回数、フォロワー数
+    return [tweet.created_at, tweet.text, tweet.user.name, tweet.retweet_count, tweet.favorite_count, tweet.user.followers_count];
  });
 
-
- 
  // Logger.log(tweets);
-
    return tweets;
 }
 
+
+
+
+// 関数説明：過去のデータを削除する
 function clearSheet() {
   const sheetName   = '例';
  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
  const sheet       = spreadsheet.getSheetByName(sheetName);
  
- sheet.getRange(5,1,20,5).clear();
+ sheet.getRange(5,1,20,10).clear();
 }
 
+
+// 日付の列
+var CREATED_AT = 1;
+// テキスト本文の列
+var TEXT = 2;
+// ハンドル名の列
+var SCREEN_NAME = 3;
+// リツイートされた回数の列
+var RETWEET_COUNT = 4;
+// いいねされた回数の列
+var FAVORITE_COUNT = 5;
+// ユーザーのフォロワー数
+var FOLLOWERS_COUNT = 6;
+
+
+// 関数説明：データをシートに出力する
 function writeDataToSheet() {
+  // シートを取得する
  const sheetName   = '例';
  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
  const sheet       = spreadsheet.getSheetByName(sheetName);
  
- sheet.getRange(5,1,20,5).clear();
-
-  // var range = sheet.getRange(2,3).setValue(searchTweets()[0]);
+ // 過去のデータを削除する
+ sheet.getRange(5,1,20,10).clear();
 
   var lastRow = sheet.getLastRow() - 3;
 
   // Logger.log(lastRow);
 
+  // for循環
   for (var i=5; i<=searchTweets().length; i++)
 　  {
-    sheet.getRange(i, 2).setValue(searchTweets()[i-5]);
-    sheet.getRange(i, 1).setValue(i-4);
+    // 時間を日本時間にする
+    var date = new Date(searchTweets()[i-5][0]);
+    sheet.getRange(i, CREATED_AT).setValue(Utilities.formatDate(date, "JST", "yyyy-MM-dd HH:mm:ss"));
+    // テキストを取得する
+    sheet.getRange(i, TEXT).setValue(searchTweets()[i-5][1]);
+    
+    // ハンドル名を取得する
+    sheet.getRange(i, SCREEN_NAME).setValue(searchTweets()[i-5][2]);
+
+    // リツイートされた回数を取得する
+    sheet.getRange(i, RETWEET_COUNT).setValue(searchTweets()[i-5][3]);
+
+    // いいねされた回数を取得する
+    sheet.getRange(i, FAVORITE_COUNT).setValue(searchTweets()[i-5][4]);
+
+    // ユーザーのフォロワー数
+    sheet.getRange(i, FOLLOWERS_COUNT).setValue(searchTweets()[i-5][5]);
+
 　  }
 }
-
-
-
